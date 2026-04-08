@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Cashier.css';
 import { useNavigate } from "react-router-dom";
-import api from "../../api"; // Instance axios
+import api from "../../api"; 
 
 function Cashier() {
     const navigate = useNavigate();
@@ -9,10 +9,18 @@ function Cashier() {
     // State Management
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [products, setProducts] = useState([]); // Data dari database
-    const [cart, setCart] = useState([]); // Data belanjaan sementara
+    const [products, setProducts] = useState([]); 
+    const [cart, setCart] = useState([]); 
     const [paymentMethod, setPaymentMethod] = useState("Cash");
     const [isLoading, setIsLoading] = useState(false);
+    
+    // --- TAMBAHAN: Ambil data user dari localStorage ---
+    const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user")));
+
+    const onClickLogout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
     // 1. Ambil data produk saat halaman dibuka
     useEffect(() => {
@@ -68,12 +76,12 @@ function Cashier() {
         try {
             const payload = {
                 payment_method: paymentMethod,
-                items: cart // Struktur ini sudah sesuai dengan transactionController
+                items: cart 
             };
 
             const response = await api.post("/api/transactions", payload);
             alert(`Transaksi Berhasil! Total: Rp ${response.data.total_bayar.toLocaleString('id-ID')}`);
-            setCart([]); // Kosongkan keranjang
+            setCart([]); 
         } catch (err) {
             alert(err.response?.data?.error || "Terjadi kesalahan transaksi");
         } finally {
@@ -93,17 +101,23 @@ function Cashier() {
                     <button className="menu-item" onClick={() => navigate("/product")}>Product</button>
                     <button className="menu-item" onClick={() => navigate("/calculator")}>Calculator</button>
                 </nav>
+
+                {/* --- UPDATE: Bagian Profile Card --- */}
                 <div className="profile-card">
                     <div className="profile-main" onClick={() => setIsProfileOpen(!isProfileOpen)} style={{ cursor: 'pointer' }}>
                         <div className="profile-info-wrapper">
-                            <span className="avatar">P</span>
-                            <span>Profile</span>
+                            {/* Inisial diambil dari store_name */}
+                            <span className="avatar">
+                                {user?.store_name?.charAt(0).toUpperCase() || "U"}
+                            </span>
+                            {/* Nama toko muncul di sini */}
+                            <span>{user?.store_name || "User"}</span>
                         </div>
                         <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>▼</span>
                     </div>
                     {isProfileOpen && (
                         <div className="profile-options">
-                            <button className="profile-opt-btn" onClick={() => navigate("/")}>⏻ Log out</button>
+                            <button className="profile-opt-btn logout" onClick={onClickLogout}>⏻ Log out</button>
                         </div>
                     )}
                 </div>
@@ -119,39 +133,37 @@ function Cashier() {
 
                 <div className="product-grid">
                     {products.map((prod) => (
-                    <div 
-                        key={prod.id} 
-                        className="product-placeholder" 
-                        onClick={() => addToCart(prod)} 
-                        style={{ position: 'relative', overflow: 'hidden' }}
-                    >
+                        <div 
+                            key={prod.id} 
+                            className="product-placeholder" 
+                            onClick={() => addToCart(prod)} 
+                            style={{ position: 'relative', overflow: 'hidden' }}
+                        >
+                            {prod.image_url ? (
+                                <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                                <div style={{ padding: '10px', textAlign: 'center', background: '#eee', height: '100%' }}>{prod.name}</div>
+                            )}
 
-                    {prod.image_url ? (
-                        <img src={prod.image_url} alt={prod.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                        <div style={{ padding: '10px', textAlign: 'center' }}>{prod.name}</div>
-                    )}
-
-                    {/* Overlay Nama & Harga (Ditambahkan di sini) */}
-                    <div className="prod-info-overlay" style={{ 
-                        position: 'absolute', 
-                        bottom: 0, 
-                        background: 'rgba(0,0,0,0.7)', // Background agak gelap biar teks putih kelihatan
-                        color: 'white', 
-                        width: '100%', 
-                        padding: '5px 0',
-                        textAlign: 'center' 
-                    }}>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'capitalize' }}>
-                            {prod.name}
+                            <div className="prod-info-overlay" style={{ 
+                                position: 'absolute', 
+                                bottom: 0, 
+                                background: 'rgba(0,0,0,0.7)', 
+                                color: 'white', 
+                                width: '100%', 
+                                padding: '5px 0',
+                                textAlign: 'center' 
+                            }}>
+                                <div style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'capitalize' }}>
+                                    {prod.name}
+                                </div>
+                                <div style={{ fontSize: '10px' }}>
+                                    Rp {prod.sell_price.toLocaleString('id-ID')}
+                                </div>
+                            </div>
                         </div>
-                        <div style={{ fontSize: '10px' }}>
-                            Rp {prod.sell_price.toLocaleString('id-ID')}
-                        </div>
-                    </div>
+                    ))}
                 </div>
-            ))}
-            </div>
             </main>
 
             <section className="cart-section">
@@ -173,7 +185,7 @@ function Cashier() {
                             </div>
                             <div className="price-tag">
                                 Rp.{(item.price * item.quantity).toLocaleString('id-ID')}
-                                <b onClick={() => removeItem(item.product_id)}> X</b>
+                                <b onClick={() => removeItem(item.product_id)} style={{ cursor: 'pointer', marginLeft: '10px', color: 'red' }}> X</b>
                             </div>
                         </div>
                     ))}

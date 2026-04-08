@@ -10,9 +10,7 @@ function Dashboard() {
     
     const [stats, setStats] = useState({
         labaHariIni: 0,
-        transaksiHariIni: 0,
-        produkTerjual: 0, // Ini akan berisi total unit terjual
-        totalProduk: 0    // Ini akan berisi sisa stok (total unit)
+        transaksiHariIni: 0
     });
     const [recentTransactions, setRecentTransactions] = useState([]);
     const user = JSON.parse(localStorage.getItem("user"));
@@ -21,9 +19,21 @@ function Dashboard() {
         const fetchDashboardData = async () => {
             try {
                 const res = await api.get("/api/reports/dashboard-summary");
-                // Backend harus mengirimkan hasil SUM(stock) dan SUM(quantity)
-                setStats(res.data.stats);
-                setRecentTransactions(res.data.recent);
+                
+                // Ambil semua transaksi
+                const allRecent = res.data.recent;
+                
+                // Filter hanya yang tanggalnya HARI INI untuk counter stat
+                const today = new Date().toLocaleDateString('id-ID');
+                const todayTransactions = allRecent.filter(tx => 
+                    new Date(tx.created_at).toLocaleDateString('id-ID') === today
+                );
+
+                setStats({
+                    labaHariIni: res.data.stats.labaHariIni,
+                    transaksiHariIni: todayTransactions.length // Angka ini sekarang akurat
+                });
+                setRecentTransactions(allRecent);
             } catch (err) {
                 console.error("Gagal ambil data dashboard", err);
             }
@@ -32,7 +42,6 @@ function Dashboard() {
     }, []);
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-    
     const onClickLogout = () => {
         localStorage.removeItem("user");
         navigate("/login");
@@ -68,9 +77,8 @@ function Dashboard() {
                 <header className="top-header">
                     <button className="hamburger" onClick={toggleSidebar}>☰</button>
                 </header>
-                <div className="topbar">
-                    <button onClick={onClickLogout} className="logout-item">⏻ Log out</button>
-                </div>
+                
+                {/* Bagian Log out atas dihapus/disembunyikan sesuai gambar terbaru */}
 
                 <div className="content">
                     <div className="header-title">
@@ -78,34 +86,17 @@ function Dashboard() {
                         <p>Selamat datang kembali, <b>{user?.store_name}</b>!</p>
                     </div>
 
-                    <div className="stats-grid">
-                        <div className="stat-card">
-                            <h3>Laba Hari ini</h3>
-                            <div className="stat-content">
-                                <div className="icon-box">💰</div>
-                                <span className="stat-value">Rp {stats.labaHariIni.toLocaleString('id-ID')}</span>
+                    <div className="stats-container">
+                        <div className="stat-card laba-full">
+                            <div className="stat-main-info">
+                                <h3>Laba Hari ini</h3>
+                                <div className="stat-content">
+                                    <span className="stat-value">Rp {stats.labaHariIni.toLocaleString('id-ID')}</span>
+                                </div>
                             </div>
-                            <p className="stat-footer">{stats.transaksiHariIni} transaksi hari ini</p>
-                        </div>
-
-                        {/* Menampilkan total unit yang sudah laku terjual */}
-                        <div className="stat-card">
-                            <h3>Produk Terjual</h3>
-                            <div className="stat-content">
-                                <div className="icon-box">📦</div>
-                                <span className="stat-value">{stats.produkTerjual}</span>
+                            <div className="stat-badge-info">
+                                <p className="stat-footer"><b>{stats.transaksiHariIni}</b> transaksi hari ini</p>
                             </div>
-                            <p className="stat-footer">Total item keluar</p>
-                        </div>
-
-                        {/* Menampilkan total sisa unit stok di gudang */}
-                        <div className="stat-card">
-                            <h3>Sisa Stok</h3>
-                            <div className="stat-content">
-                                <div className="icon-box">🛒</div>
-                                <span className="stat-value">{stats.totalProduk}</span>
-                            </div>
-                            <p className="stat-footer">Total unit tersedia</p>
                         </div>
                     </div>
 
@@ -114,30 +105,33 @@ function Dashboard() {
                             <span className="icon-history">⏳</span>
                             <h2>Transaksi Terakhir</h2> 
                         </div>
-                        <div className="table-container">
-                            <table className="transaction-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Metode</th>
-                                        <th>Total</th>
-                                        <th>Waktu</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentTransactions.map((tx) => (
-                                        <tr key={tx.id}>
-                                            <td>#{tx.id.toString().slice(-8)}</td>
-                                            <td>{tx.payment_method}</td>
-                                            <td>Rp {tx.total_amount.toLocaleString('id-ID')}</td>
-                                            <td>{new Date(tx.created_at).toLocaleDateString('id-ID')}</td>
+                        <div className="table-scroll-wrapper">
+                            <div className="table-container">
+                                <table className="transaction-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Metode</th>
+                                            <th>Total</th>
+                                            <th>Waktu</th>
                                         </tr>
-                                    ))}
-                                    {recentTransactions.length === 0 && (
-                                        <tr><td colSpan="4" style={{textAlign: 'center'}}>Belum ada transaksi</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {recentTransactions.map((tx) => (
+                                            <tr key={tx.id}>
+                                                <td>#{tx.id.toString().slice(-5)}</td>
+                                                <td>
+                                                    <span className={`method-badge ${tx.payment_method?.toLowerCase()}`}>
+                                                        {tx.payment_method}
+                                                    </span>
+                                                </td>
+                                                <td className="amount-cell">Rp {tx.total_amount.toLocaleString('id-ID')}</td>
+                                                <td>{new Date(tx.created_at).toLocaleDateString('id-ID')}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

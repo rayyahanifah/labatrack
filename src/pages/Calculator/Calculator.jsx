@@ -1,5 +1,5 @@
 import "./Calculator.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Calculator() {
@@ -7,6 +7,9 @@ function Calculator() {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    
+    // --- TAMBAHAN: Ambil data user dari localStorage ---
+    const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user")));
 
     // State untuk form
     const [formData, setFormData] = useState({
@@ -28,9 +31,14 @@ function Calculator() {
     };
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-    const onClickLogout = () => navigate("/");
+    
+    // Fungsi Logout yang seragam
+    const onClickLogout = () => {
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
-    // LOGIKA PERHITUNGAN CLIENT-SIDE (Tanpa API)
+    // LOGIKA PERHITUNGAN CLIENT-SIDE
     const hitungHPP = (e) => {
         e.preventDefault();
         setErrorMsg('');
@@ -46,16 +54,13 @@ function Calculator() {
                 presentase 
             } = formData;
 
-            // 1. Validasi Dasar
             if (!namaProduk || !jumlahProduksi || !biayaBahanBaku || !presentase) {
                 throw new Error("Semua kolom wajib diisi!");
             }
 
-            // 2. Hitung HPP Dasar
             const hppTotal = Number(biayaBahanBaku) + (Number(biayaTenagaKerja) || 0) + (Number(biayaOverhead) || 0);
             const hppPerUnitRaw = hppTotal / Number(jumlahProduksi);
 
-            // 3. Penentuan Harga Jual
             let hargaJualKotor;
             const persenDecimal = Number(presentase) / 100;
 
@@ -66,7 +71,6 @@ function Calculator() {
                 hargaJualKotor = hppPerUnitRaw / (1 - persenDecimal);
             }
 
-            // 4. Pembulatan Ratusan ke Atas (Cth: 3210 -> 3300)
             const hargaJualPerUnit = Math.ceil(hargaJualKotor / 100) * 100;
             const hppPerUnit = Math.round(hppPerUnitRaw);
 
@@ -84,7 +88,6 @@ function Calculator() {
         }
     };
 
-    // Fungsi untuk memindahkan data ke halaman Product
     const handleAcceptPrice = () => {
         navigate("/product", { 
             state: { 
@@ -102,19 +105,22 @@ function Calculator() {
                     <button className="menu-item" onClick={() => navigate("/dashboard")}>Dashboard</button>
                     <button className="menu-item" onClick={() => navigate("/cashier")}>Cashier</button>
                     <button className="menu-item" onClick={() => navigate("/product")}>Product</button>
-                    <button className="menu-item active" onClick={() => navigate("/calculator")}>Calculator</button>
+                    <button className="menu-item active">Calculator</button>
                 </nav>
+
+                {/* --- UPDATE: Profile Card Dinamis --- */}
                 <div className="profile-card">
-                    <div className="profile-main" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+                    <div className="profile-main" onClick={() => setIsProfileOpen(!isProfileOpen)} style={{ cursor: 'pointer' }}>
                         <div className="profile-info-wrapper">
-                            <span className="avatar">P</span>
-                            <span>Profile</span>
+                            <span className="avatar">
+                                {user?.store_name?.charAt(0).toUpperCase() || "U"}
+                            </span>
+                            <span>{user?.store_name || "User"}</span>
                         </div>
                         <span className={`arrow ${isProfileOpen ? "rotate" : ""}`}>▼</span>
                     </div>
                     {isProfileOpen && (
                         <div className="profile-options">
-                            <button className="profile-opt-btn">📝 Edit Profile</button>
                             <button className="profile-opt-btn logout" onClick={onClickLogout}>⏻ Log out</button>
                         </div>
                     )}

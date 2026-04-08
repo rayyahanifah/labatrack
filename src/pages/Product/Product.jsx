@@ -1,15 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./Product.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../../api"; 
+import api from "../../api";
 
 function Product() {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook untuk menangkap data dari Calculator
+  const location = useLocation();
   const fileInputRef = useRef(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user")));
 
   // State Produk
   const [product, setProduct] = useState({
@@ -25,24 +27,29 @@ function Product() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // LOGIKA AUTO-FILL SAAT HALAMAN DIBUKA
+  // LOGIKA AUTO-FILL DARI CALCULATOR
   useEffect(() => {
     if (location.state) {
       const { nama, harga, hpp } = location.state;
       setProduct((prev) => ({
         ...prev,
-        name: nama || "",
-        sell_price: harga || 0,
-        base_price: hpp || 0
+        name: nama || prev.name,
+        sell_price: harga || prev.sell_price,
+        base_price: hpp || prev.base_price,
       }));
 
-      // Bersihkan state location agar data tidak muncul lagi saat refresh manual
+      // Bersihkan state agar data tidak muncul lagi saat refresh manual
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
+  const onClickLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -57,7 +64,7 @@ function Product() {
 
     const formData = new FormData();
     formData.append("name", product.name);
-    formData.append("category", product.category);
+    formData.append("category", product.category || "Umum");
     formData.append("base_price", product.base_price);
     formData.append("sell_price", product.sell_price);
     formData.append("stock", product.stock);
@@ -70,7 +77,8 @@ function Product() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert(response.data.message);
-      // Reset form
+      
+      // Reset form setelah berhasil
       setProduct({ name: "", category: "", base_price: 0, sell_price: 0, stock: 0, description: "" });
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -91,8 +99,22 @@ function Product() {
           <button className="menu-item" onClick={() => navigate("/cashier")}>Cashier</button>
           <button className="menu-item active">Product</button>
           <button className="menu-item" onClick={() => navigate("/calculator")}>Calculator</button>
-          <button className="menu-item" onClick={() => navigate("/account")}>Akun</button>
         </nav>
+
+        <div className="profile-card">
+          <div className="profile-main" onClick={() => setIsProfileOpen(!isProfileOpen)} style={{ cursor: 'pointer' }}>
+            <div className="profile-info-wrapper">
+              <span className="avatar">{user?.store_name?.charAt(0).toUpperCase() || "U"}</span>
+              <span>{user?.store_name || "User"}</span>
+            </div>
+            <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>▼</span>          
+          </div>
+          {isProfileOpen && (
+            <div className="profile-options">
+              <button className="profile-opt-btn logout" onClick={onClickLogout}>⏻ Log out</button>
+            </div>
+          )}
+        </div>
       </aside>
 
       <main className="main-content">
@@ -132,7 +154,9 @@ function Product() {
                     <input
                       type="number"
                       required
-                      value={product.sell_price}
+                      // Logika agar angka 0 tidak mengganggu saat input baru
+                      value={product.sell_price === 0 ? "" : product.sell_price}
+                      placeholder="0"
                       onChange={(e) => setProduct({ ...product, sell_price: Number(e.target.value) })}
                     />
                   </div>
@@ -141,7 +165,8 @@ function Product() {
                     <input
                       type="number"
                       required
-                      value={product.base_price}
+                      value={product.base_price === 0 ? "" : product.base_price}
+                      placeholder="0"
                       onChange={(e) => setProduct({ ...product, base_price: Number(e.target.value) })}
                     />
                   </div>
@@ -151,7 +176,8 @@ function Product() {
                   <label>Stok Awal</label>
                   <input
                     type="number"
-                    value={product.stock}
+                    value={product.stock === 0 ? "" : product.stock}
+                    placeholder="0"
                     onChange={(e) => setProduct({ ...product, stock: Number(e.target.value) })}
                   />
                 </div>
