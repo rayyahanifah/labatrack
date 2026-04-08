@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api"; 
 
-// Import Asset
+// Import Asset sesuai folder kamu
 import logoLaba from "../../assets/menejemenproduct.png";
-import logoLabaTrack from "../../assets/logo-labatrack.png";
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -23,11 +22,8 @@ function Dashboard() {
         const fetchDashboardData = async () => {
             try {
                 const res = await api.get("/api/reports/dashboard-summary");
-                
-                // Ambil data dari backend
                 const allRecent = res.data.recent;
                 
-                // Filter transaksi hari ini untuk counter
                 const today = new Date().toLocaleDateString('id-ID');
                 const todayTransactions = allRecent.filter(tx => 
                     new Date(tx.created_at).toLocaleDateString('id-ID') === today
@@ -56,7 +52,6 @@ function Dashboard() {
         <div className="container">
             {/* 1. SIDEBAR */}
             <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-
                 <nav className="menu">
                     <button className="menu-item active">Dashboard</button>
                     <button className="menu-item" onClick={() => navigate("/cashier")}>Cashier</button>
@@ -70,12 +65,15 @@ function Dashboard() {
                             <span className="avatar">{user?.store_name?.charAt(0).toUpperCase() || "M"}</span>
                             <span>{user?.store_name || "mantap"}</span>
                         </div>
-                        <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>▼</span>
+                        <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>🔻</span>
                     </div>
+
+                    {/* DROPDOWN KE BAWAH (SESUAI REQUEST) */}
                     {isProfileOpen && (
-                        <div className="profile-options">
-                            <button className="profile-opt-btn">📝 Edit Profile</button>
-                            <button className="profile-opt-btn logout" onClick={onClickLogout}>🚪 Log out</button>
+                        <div className="profile-options-dropdown">
+                            <button className="profile-opt-btn logout-text" onClick={onClickLogout}>
+                                📕 Log out
+                            </button>
                         </div>
                     )}
                 </div>
@@ -139,9 +137,6 @@ function Dashboard() {
                                                 <td>{new Date(tx.created_at).toLocaleDateString('id-ID')}</td>
                                             </tr>
                                         ))}
-                                        {recentTransactions.length === 0 && (
-                                            <tr><td colSpan="4" style={{textAlign: 'center', padding: '20px'}}>Belum ada transaksi</td></tr>
-                                        )}
                                     </tbody>
                                 </table>
                             </div>

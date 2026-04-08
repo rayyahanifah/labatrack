@@ -107,13 +107,16 @@ function Product() {
               <span className="avatar">{user?.store_name?.charAt(0).toUpperCase() || "U"}</span>
               <span>{user?.store_name || "User"}</span>
             </div>
-            <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>▼</span>          
+            <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>🔻</span>          
           </div>
-          {isProfileOpen && (
-            <div className="profile-options">
-              <button className="profile-opt-btn logout" onClick={onClickLogout}>⏻ Log out</button>
-            </div>
-          )}
+          {/* DROPDOWN KE BAWAH (SESUAI REQUEST) */}
+                    {isProfileOpen && (
+                        <div className="profile-options-dropdown">
+                            <button className="profile-opt-btn logout-text" onClick={onClickLogout}>
+                                📕 Log out
+                            </button>
+                        </div>
+                    )}
         </div>
       </aside>
 

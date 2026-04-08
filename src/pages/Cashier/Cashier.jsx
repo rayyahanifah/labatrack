@@ -113,11 +113,14 @@ function Cashier() {
                             {/* Nama toko muncul di sini */}
                             <span>{user?.store_name || "User"}</span>
                         </div>
-                        <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>▼</span>
+                        <span className={`arrow ${isProfileOpen ? 'rotate' : ''}`}>🔻</span>
                     </div>
+                    {/* DROPDOWN KE BAWAH (SESUAI REQUEST) */}
                     {isProfileOpen && (
-                        <div className="profile-options">
-                            <button className="profile-opt-btn logout" onClick={onClickLogout}>⏻ Log out</button>
+                        <div className="profile-options-dropdown">
+                            <button className="profile-opt-btn logout-text" onClick={onClickLogout}>
+                                📕 Log out
+                            </button>
                         </div>
                     )}
                 </div>
