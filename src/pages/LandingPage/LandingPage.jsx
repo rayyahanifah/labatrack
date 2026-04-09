@@ -58,7 +58,7 @@ function LandingPage() {
                     <p>Tujuanmu meraih keuntungan berdagang, dimulai dari sini!!!</p>
 
                     <button
-                        className="button-login"
+                        className="button-daftar"
                         onClick={() => navigate("/register")}
                     >
                         {isLoading ? "Loading..." : "Daftar Gratis"} <span> → </span>
