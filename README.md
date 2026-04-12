@@ -48,11 +48,14 @@ git clone https://github.com/rayyahanifah/labatrack.git
 # Clone Backend
 git clone https://github.com/rayyahanifah/labatrack-backend.git
 
-### 2. Konfigurasi Backend
+### 2. Konfigurasi Backend (Express.js)
 Masuk ke folder backend untuk mengatur koneksi server dan database:
-1. cd labatrack-backend
-2. npm install
-3. Buat file .env dan masukkan konfigurasi berikut:
+
+1. `cd labatrack-backend`
+2. `npm install`
+3. Buat file **.env** dan masukkan konfigurasi berikut:
+
+```env
 # API Key dari Supabase Dashboard (Settings > API)
 SUPABASE_URL=link_url_supabase_anda
 SUPABASE_ANON_KEY=key_anon_supabase_anda
@@ -62,15 +65,19 @@ JWT_SECRET=kode_rahasia_jwt_anda
 
 # Port server lokal
 PORT=3000
-4. Jalankan server backend: npm run dev
+```
 
-### 3. Konfigurasi Frontend (React)
+3. Konfigurasi Frontend (React)
 Buka terminal baru untuk menjalankan antarmuka aplikasi:
-1. cd labatrack
-2. npm install
+
+1. `cd labatrack`
+2. `npm install`
 3. Buat file .env di root folder frontend agar bisa terhubung ke backend:
+
+```env
 VITE_API_URL=http://localhost:3000
-4. Jalankan aplikasi: npm run dev
+```
+Jalankan aplikasi: `npm run dev`
 
 ### 👥 Tim Pengembang (Fullstack Squad)
 Proyek ini dikembangkan oleh:
